@@ -197,3 +197,131 @@ body {
   background: rgba(99, 102, 241, 0.3);
   color: var(--color-text-primary);
 }
+
+/* ── Floating Nav Dock ────────────────────────────────── */
+.nav-dock {
+  position: fixed;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  pointer-events: none;
+}
+
+.nav-dock-inner {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 8px;
+  background: rgba(19, 17, 28, 0.85);
+  backdrop-filter: blur(20px) saturate(1.4);
+  border: 1px solid rgba(99, 102, 241, 0.15);
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.03) inset;
+  pointer-events: auto;
+}
+
+.nav-dock-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 14px;
+  border-radius: 14px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.nav-dock-item:hover {
+  background: rgba(99, 102, 241, 0.08);
+}
+
+.nav-dock-item-active {
+  background: rgba(99, 102, 241, 0.15);
+}
+
+.nav-dock-item-active::after {
+  content: '';
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--color-primary-light);
+  box-shadow: 0 0 8px var(--color-primary);
+}
+
+.nav-dock-icon {
+  color: var(--color-text-muted);
+  transition: all 0.2s ease;
+}
+
+.nav-dock-item:hover .nav-dock-icon {
+  color: var(--color-text-secondary);
+  transform: translateY(-1px);
+}
+
+.nav-dock-icon-active {
+  color: var(--color-primary-light);
+}
+
+.nav-dock-item:hover .nav-dock-icon-active {
+  color: var(--color-primary-light);
+  transform: translateY(-2px) scale(1.1);
+}
+
+.nav-dock-label {
+  font-size: 9px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  transition: color 0.2s ease;
+  white-space: nowrap;
+}
+
+.nav-dock-label-active {
+  color: var(--color-primary-light);
+}
+
+/* ── Page header bar ────────────────────────────────── */
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 24px;
+  background: rgba(19, 17, 28, 0.6);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--color-surface-border);
+}
+
+.page-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.page-title-logo {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+}
+
+.page-title h1 {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  letter-spacing: -0.01em;
+}
+
+.page-title span {
+  font-size: 11px;
+  color: var(--color-text-muted);
+}

@@ -30,7 +30,7 @@ export default function TasksPage({ tasks, onUpdateTasks, activityLogs, onAddAct
   const medPriority = tasks.filter(t => t.priority === 'medium' && !t.completed)
 
   return (
-    <div className="space-y-4 animate-fade-in">
+    <div className="space-y-3 animate-fade-in">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -104,14 +104,14 @@ export default function TasksPage({ tasks, onUpdateTasks, activityLogs, onAddAct
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
         {/* Main task list */}
-        <div className="lg:col-span-7">
+        <div className="lg:col-span-2">
           <TaskList tasks={tasks} onUpdate={onUpdateTasks} />
         </div>
 
         {/* Right side: Activity + Focus */}
-        <div className="lg:col-span-5 space-y-4">
+        <div className="space-y-3">
           <FocusTimer onSessionComplete={() => {
             onAddActivityLog({
               id: `log-${Date.now()}`,

@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Search } from 'lucide-react'
+import { Search, Zap } from 'lucide-react'
 import { useLocalStorage } from './hooks/useLocalStorage'
 import { defaultGoals, defaultTasks } from './data/defaultGoals'
-import Sidebar from './components/Sidebar'
+import NavDock from './components/NavDock'
 import DashboardPage from './components/pages/DashboardPage'
 import GoalsPage from './components/pages/GoalsPage'
 import TasksPage from './components/pages/TasksPage'
@@ -179,34 +179,36 @@ function App() {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-bg">
-      {/* Sidebar */}
-      <Sidebar activePage={activePage} onNavigate={setActivePage} />
-
-      {/* Main content area */}
-      <div className="flex-1 flex flex-col min-w-0 h-screen">
-        {/* Top bar */}
-        <header className="flex items-center justify-between px-6 py-3 border-b border-surface-border bg-surface/50 backdrop-blur-sm flex-shrink-0">
-          <div>
-            <h2 className="text-base font-bold text-text-primary capitalize">{activePage}</h2>
+    <div className="h-screen flex flex-col overflow-hidden bg-bg">
+      {/* Top bar */}
+      <header className="page-header flex-shrink-0">
+        <div className="page-title">
+          <div className="page-title-logo">
+            <Zap className="w-4 h-4 text-white" />
           </div>
+          <div>
+            <h1>GoalForge</h1>
+            <span>Execute. Improve. Dominate.</span>
+          </div>
+        </div>
 
-          {/* Search trigger */}
-          <button
-            onClick={() => setCommandBarOpen(true)}
-            className="flex items-center gap-2 px-3 py-1.5 bg-surface-light border border-surface-border rounded-lg text-xs text-text-muted hover:border-primary/30 transition-all w-64"
-          >
-            <Search className="w-3.5 h-3.5" />
-            <span className="flex-1 text-left">Search or command...</span>
-            <kbd className="px-1 py-0.5 bg-surface rounded text-xs border border-surface-border">&#8984;K</kbd>
-          </button>
-        </header>
+        <button
+          onClick={() => setCommandBarOpen(true)}
+          className="flex items-center gap-2 px-3 py-1.5 bg-surface-light border border-surface-border rounded-lg text-xs text-text-muted hover:border-primary/30 transition-all w-56"
+        >
+          <Search className="w-3.5 h-3.5" />
+          <span className="flex-1 text-left">Search...</span>
+          <kbd className="px-1 py-0.5 bg-surface rounded text-[10px] border border-surface-border">&#8984;K</kbd>
+        </button>
+      </header>
 
-        {/* Scrollable page content */}
-        <main className="flex-1 overflow-y-auto p-6">
-          {renderPage()}
-        </main>
-      </div>
+      {/* Scrollable page content — extra bottom padding for dock */}
+      <main className="flex-1 overflow-y-auto px-5 py-4 pb-24">
+        {renderPage()}
+      </main>
+
+      {/* Floating nav dock */}
+      <NavDock activePage={activePage} onNavigate={setActivePage} />
 
       {/* Modals */}
       {showAddGoal && (

@@ -340,13 +340,13 @@ function WhoopSetup() {
 
 export default function IntegrationsPage() {
   return (
-    <div className="space-y-4 animate-fade-in">
+    <div className="space-y-3 animate-fade-in">
       <div>
-        <h2 className="text-lg font-bold text-text-primary">Integrations</h2>
+        <h2 className="text-base font-bold text-text-primary">Integrations</h2>
         <p className="text-xs text-text-muted">Connect external services to enhance your productivity workflow</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
         <WhoopSetup />
         <DiscordSetup />
         <TelegramSetup />

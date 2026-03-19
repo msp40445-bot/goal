@@ -17,12 +17,12 @@ export default function GoalsPage({ goals, onUpdate, onDelete, onAIBreakdown, on
   const filteredGoals = filterCategory === 'all' ? goals : goals.filter(g => g.category === filterCategory)
 
   return (
-    <div className="space-y-4 animate-fade-in">
+    <div className="space-y-3 animate-fade-in">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-bold text-text-primary">Goals</h2>
-          <p className="text-xs text-text-muted">{goals.length} active goals across {Object.keys(categoryConfig).length} categories</p>
+          <h2 className="text-base font-bold text-text-primary">Goals</h2>
+          <p className="text-xs text-text-muted">{goals.length} active across {Object.keys(categoryConfig).length} categories</p>
         </div>
         <div className="flex items-center gap-2">
           <div className="flex bg-surface-light rounded-lg p-0.5 border border-surface-border">
@@ -74,9 +74,9 @@ export default function GoalsPage({ goals, onUpdate, onDelete, onAIBreakdown, on
       </div>
 
       {view === 'cards' ? (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
           {/* Goal cards */}
-          <div className="lg:col-span-8">
+          <div className="lg:col-span-2">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {filteredGoals.map(goal => (
                 <GoalCard
@@ -96,7 +96,7 @@ export default function GoalsPage({ goals, onUpdate, onDelete, onAIBreakdown, on
           </div>
 
           {/* Radar sidebar */}
-          <div className="lg:col-span-4">
+          <div>
             <RadarChart goals={goals} />
           </div>
         </div>

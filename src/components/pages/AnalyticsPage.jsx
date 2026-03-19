@@ -51,7 +51,7 @@ export default function AnalyticsPage({ goals, tasks, completionLog, streak, onA
   })
 
   return (
-    <div className="space-y-4 animate-fade-in">
+    <div className="space-y-3 animate-fade-in">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -107,9 +107,9 @@ export default function AnalyticsPage({ goals, tasks, completionLog, streak, onA
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
         {/* Chart area */}
-        <div className="lg:col-span-8 space-y-4">
+        <div className="lg:col-span-2 space-y-3">
           {/* Daily completion chart */}
           <div className="card p-4">
             <div className="text-xs font-semibold text-text-primary uppercase tracking-wide mb-3">Daily Completion Rate</div>
@@ -166,7 +166,7 @@ export default function AnalyticsPage({ goals, tasks, completionLog, streak, onA
         </div>
 
         {/* Right column */}
-        <div className="lg:col-span-4 space-y-4">
+        <div className="space-y-3">
           <RadarChart goals={goals} />
           <WeeklyReview goals={goals} tasks={tasks} completionLog={completionLog} onAIReview={onAIReview} />
         </div>
