@@ -97,7 +97,27 @@ Be brutally honest but constructive.`,
 3. Top 3 wins to celebrate
 4. Top 3 areas needing improvement
 5. Specific plan for next week
-6. Overall momentum assessment (accelerating/maintaining/declining)`
+6. Overall momentum assessment (accelerating/maintaining/declining)`,
+    schedule: `Create an optimized time-blocked schedule for today:
+1. Start with Fajr prayer and morning routine
+2. Assign each pending task to a specific time slot
+3. Group similar tasks together for deep work blocks
+4. Include breaks (Pomodoro style: 25min work, 5min break)
+5. Schedule prayers at their proper times
+6. Put high-priority tasks during peak energy hours (morning)
+7. Include buffer time between blocks
+8. End with evening reflection and next-day planning
+Format as a clean timetable with times and tasks.`,
+    sprint: `Create a focused 7-day sprint plan:
+1. Identify the TOP 3 goals that need the most attention
+2. For each day (Day 1-7), create 3-5 specific tasks
+3. Each task should be completable in 30-90 minutes
+4. Build momentum: start with quick wins on Day 1
+5. Include milestones to hit by Day 3 and Day 7
+6. Balance across categories (don't neglect any area)
+7. Include daily prayer schedule integration
+8. Add a "sprint review" task on Day 7
+Make it aggressive but achievable.`
   }
 
   const prompt = prompts[type] || prompts.daily

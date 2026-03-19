@@ -1,19 +1,16 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Plus, Zap, Search, Bell, RotateCcw } from 'lucide-react'
+import { Search } from 'lucide-react'
 import { useLocalStorage } from './hooks/useLocalStorage'
-import { defaultGoals, defaultTasks, categoryConfig } from './data/defaultGoals'
-import Timeline from './components/Timeline'
-import StatsBar from './components/StatsBar'
-import GoalCard from './components/GoalCard'
-import TaskList from './components/TaskList'
-import AIChat from './components/AIChat'
+import { defaultGoals, defaultTasks } from './data/defaultGoals'
+import Sidebar from './components/Sidebar'
+import DashboardPage from './components/pages/DashboardPage'
+import GoalsPage from './components/pages/GoalsPage'
+import TasksPage from './components/pages/TasksPage'
+import AICoachPage from './components/pages/AICoachPage'
+import AnalyticsPage from './components/pages/AnalyticsPage'
+import IntegrationsPage from './components/pages/IntegrationsPage'
 import AddGoalModal from './components/AddGoalModal'
-import FocusTimer from './components/FocusTimer'
-import ActivityLog from './components/ActivityLog'
 import CommandBar from './components/CommandBar'
-import MotivationalQuote from './components/MotivationalQuote'
-import WeeklyReview from './components/WeeklyReview'
-import StreakBadge from './components/StreakBadge'
 import { getTaskBreakdown, getAISuggestion } from './services/ai'
 import { requestNotificationPermission } from './services/notifications'
 import { format } from 'date-fns'
@@ -24,15 +21,13 @@ function App() {
   const [completionLog, setCompletionLog] = useLocalStorage('goalforge-log', {})
   const [streak, setStreak] = useLocalStorage('goalforge-streak', 0)
   const [activityLogs, setActivityLogs] = useLocalStorage('goalforge-activity', [])
+  const [activePage, setActivePage] = useState('dashboard')
   const [showAddGoal, setShowAddGoal] = useState(false)
   const [commandBarOpen, setCommandBarOpen] = useState(false)
-  const [notifEnabled, setNotifEnabled] = useState(false)
 
   // Request notification permission on mount
   useEffect(() => {
-    requestNotificationPermission().then(perm => {
-      setNotifEnabled(perm === 'granted')
-    })
+    requestNotificationPermission()
   }, [])
 
   // Track daily completion
@@ -51,15 +46,11 @@ function App() {
 
   // Calculate streak
   useEffect(() => {
-    const today = format(new Date(), 'yyyy-MM-dd')
     const yesterday = format(new Date(Date.now() - 86400000), 'yyyy-MM-dd')
     const yesterdayLog = completionLog[yesterday]
 
     if (yesterdayLog && yesterdayLog.completed / yesterdayLog.total >= 0.5) {
-      const todayLog = completionLog[today]
-      if (!todayLog || todayLog.completed === 0) {
-        // Keep streak
-      }
+      // Streak continues
     }
   }, [completionLog])
 
@@ -131,148 +122,91 @@ function App() {
     }
     if (commandId === 'add-goal') {
       setShowAddGoal(true)
-    } else if (commandId === 'add-task') {
-      // Focus will be handled by the TaskList component's add button
     }
-    // AI commands are handled via the CommandBar -> AIChat interaction
   }, [])
 
-  const goalsByCategory = Object.keys(categoryConfig).reduce((acc, cat) => {
-    acc[cat] = goals.filter(g => g.category === cat)
-    return acc
-  }, {})
+  const renderPage = () => {
+    switch (activePage) {
+      case 'dashboard':
+        return (
+          <DashboardPage
+            goals={goals}
+            tasks={tasks}
+            streak={streak}
+            completionLog={completionLog}
+            onUpdateTasks={setTasks}
+            onAddActivityLog={addActivityLog}
+          />
+        )
+      case 'goals':
+        return (
+          <GoalsPage
+            goals={goals}
+            onUpdate={updateGoal}
+            onDelete={deleteGoal}
+            onAIBreakdown={handleAIBreakdown}
+            onAddGoal={() => setShowAddGoal(true)}
+          />
+        )
+      case 'tasks':
+        return (
+          <TasksPage
+            tasks={tasks}
+            onUpdateTasks={setTasks}
+            activityLogs={activityLogs}
+            onAddActivityLog={addActivityLog}
+            onResetDaily={resetDailyTasks}
+            completionLog={completionLog}
+          />
+        )
+      case 'ai':
+        return <AICoachPage goals={goals} tasks={tasks} />
+      case 'analytics':
+        return (
+          <AnalyticsPage
+            goals={goals}
+            tasks={tasks}
+            completionLog={completionLog}
+            streak={streak}
+            onAIReview={handleAIWeeklyReview}
+          />
+        )
+      case 'integrations':
+        return <IntegrationsPage />
+      default:
+        return null
+    }
+  }
 
   return (
-    <div className="min-h-screen bg-bg">
-      {/* Top Bar */}
-      <header className="glass sticky top-0 z-40">
-        <div className="max-w-screen-2xl mx-auto px-4 py-2 flex items-center justify-between">
-          {/* Logo */}
-          <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}>
-              <Zap className="w-4 h-4 text-white" />
-            </div>
-            <div>
-              <h1 className="text-sm font-bold text-text-primary tracking-tight">GoalForge</h1>
-              <p className="text-xs text-text-muted leading-none">Execute. Improve. Dominate.</p>
-            </div>
+    <div className="flex h-screen overflow-hidden bg-bg">
+      {/* Sidebar */}
+      <Sidebar activePage={activePage} onNavigate={setActivePage} />
+
+      {/* Main content area */}
+      <div className="flex-1 flex flex-col min-w-0 h-screen">
+        {/* Top bar */}
+        <header className="flex items-center justify-between px-6 py-3 border-b border-surface-border bg-surface/50 backdrop-blur-sm flex-shrink-0">
+          <div>
+            <h2 className="text-base font-bold text-text-primary capitalize">{activePage}</h2>
           </div>
 
-          {/* Center - Search trigger */}
+          {/* Search trigger */}
           <button
             onClick={() => setCommandBarOpen(true)}
-            className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-surface-light border border-surface-border rounded-lg text-xs text-text-muted hover:border-primary/30 transition-all w-64"
+            className="flex items-center gap-2 px-3 py-1.5 bg-surface-light border border-surface-border rounded-lg text-xs text-text-muted hover:border-primary/30 transition-all w-64"
           >
             <Search className="w-3.5 h-3.5" />
             <span className="flex-1 text-left">Search or command...</span>
             <kbd className="px-1 py-0.5 bg-surface rounded text-xs border border-surface-border">&#8984;K</kbd>
           </button>
+        </header>
 
-          {/* Right actions */}
-          <div className="flex items-center gap-1.5">
-            <button
-              onClick={resetDailyTasks}
-              className="p-2 hover:bg-surface-light rounded-lg text-text-muted hover:text-text-secondary transition-colors"
-              title="Reset daily tasks"
-            >
-              <RotateCcw className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => requestNotificationPermission().then(p => setNotifEnabled(p === 'granted'))}
-              className={`p-2 rounded-lg transition-colors ${notifEnabled ? 'text-success' : 'text-text-muted hover:text-text-secondary hover:bg-surface-light'}`}
-              title={notifEnabled ? 'Notifications enabled' : 'Enable notifications'}
-            >
-              <Bell className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => setShowAddGoal(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-white text-xs font-semibold transition-all hover:brightness-110"
-              style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}
-            >
-              <Plus className="w-3.5 h-3.5" /> Goal
-            </button>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Dashboard - Dense 3-column layout */}
-      <main className="max-w-screen-2xl mx-auto px-4 py-3">
-        {/* Top row: Stats + Timeline */}
-        <StatsBar goals={goals} tasks={tasks} streak={streak} />
-        <Timeline completionLog={completionLog} />
-
-        {/* Main 3-column grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3">
-
-          {/* LEFT COLUMN - Goals (5 cols) */}
-          <div className="lg:col-span-5 space-y-3">
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-xs font-semibold text-text-primary uppercase tracking-wide">Goals</span>
-              <span className="text-xs text-text-muted">{goals.length} active</span>
-            </div>
-
-            <div className="space-y-2 max-h-screen overflow-y-auto pr-1">
-              {Object.entries(categoryConfig).map(([catKey, catConfig]) => {
-                const catGoals = goalsByCategory[catKey]
-                if (!catGoals || catGoals.length === 0) return null
-                return (
-                  <div key={catKey}>
-                    <div className="flex items-center gap-1.5 mb-1.5">
-                      <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: catConfig.color }} />
-                      <span className="text-xs font-medium" style={{ color: catConfig.color }}>{catConfig.label}</span>
-                      <span className="text-xs text-text-muted">({catGoals.length})</span>
-                    </div>
-                    <div className="space-y-2">
-                      {catGoals.map(goal => (
-                        <GoalCard
-                          key={goal.id}
-                          goal={goal}
-                          onUpdate={updateGoal}
-                          onDelete={deleteGoal}
-                          onAIBreakdown={handleAIBreakdown}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                )
-              })}
-
-              {goals.length === 0 && (
-                <div className="card p-6 text-center">
-                  <p className="text-xs text-text-muted">No goals yet. Create your first goal to get started!</p>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* MIDDLE COLUMN - Tasks + Activity (4 cols) */}
-          <div className="lg:col-span-4 space-y-3">
-            <TaskList tasks={tasks} onUpdate={setTasks} />
-            <ActivityLog logs={activityLogs} onAddLog={addActivityLog} />
-            <MotivationalQuote />
-          </div>
-
-          {/* RIGHT COLUMN - AI + Tools (3 cols) */}
-          <div className="lg:col-span-3 space-y-3">
-            <AIChat goals={goals} tasks={tasks} />
-            <FocusTimer onSessionComplete={() => {
-              addActivityLog({
-                id: `log-${Date.now()}`,
-                content: 'Completed a focus session',
-                category: 'growth',
-                timestamp: new Date().toISOString()
-              })
-            }} />
-            <StreakBadge streak={streak} />
-            <WeeklyReview
-              goals={goals}
-              tasks={tasks}
-              completionLog={completionLog}
-              onAIReview={handleAIWeeklyReview}
-            />
-          </div>
-        </div>
-      </main>
+        {/* Scrollable page content */}
+        <main className="flex-1 overflow-y-auto p-6">
+          {renderPage()}
+        </main>
+      </div>
 
       {/* Modals */}
       {showAddGoal && (
