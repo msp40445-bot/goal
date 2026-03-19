@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Plus, Zap, Search, Bell, RotateCcw, Settings } from 'lucide-react'
+import { Plus, Zap, Search, Bell, RotateCcw } from 'lucide-react'
 import { useLocalStorage } from './hooks/useLocalStorage'
 import { defaultGoals, defaultTasks, categoryConfig } from './data/defaultGoals'
 import Timeline from './components/Timeline'
