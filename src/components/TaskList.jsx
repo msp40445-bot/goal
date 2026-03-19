@@ -1,15 +1,21 @@
 import { useState } from 'react'
-import { Check, Circle, Plus, Trash2, Star, Clock, Filter } from 'lucide-react'
+import { Check, Circle, Plus, Trash2, Clock, Repeat, ChevronDown, ChevronUp, AlertTriangle } from 'lucide-react'
 import { categoryConfig } from '../data/defaultGoals'
+import { playAlarmSound } from '../services/notifications'
 
-export default function TaskList({ tasks, onUpdate }) {
+export default function TaskList({ tasks, onUpdate, compact }) {
   const [newTask, setNewTask] = useState('')
   const [newCategory, setNewCategory] = useState('growth')
   const [newPriority, setNewPriority] = useState('medium')
   const [filter, setFilter] = useState('all')
   const [showCompleted, setShowCompleted] = useState(true)
+  const [showAdd, setShowAdd] = useState(false)
 
   const toggleTask = (taskId) => {
+    const task = tasks.find(t => t.id === taskId)
+    if (task && !task.completed) {
+      try { playAlarmSound('complete') } catch { /* audio not available */ }
+    }
     const updated = tasks.map(t =>
       t.id === taskId ? { ...t, completed: !t.completed } : t
     )
@@ -40,144 +46,190 @@ export default function TaskList({ tasks, onUpdate }) {
     return true
   })
 
+  const sortedTasks = [...filteredTasks].sort((a, b) => {
+    if (a.completed !== b.completed) return a.completed ? 1 : -1
+    const priorityOrder = { high: 0, medium: 1, low: 2 }
+    return (priorityOrder[a.priority] || 1) - (priorityOrder[b.priority] || 1)
+  })
+
   const completedCount = tasks.filter(t => t.completed).length
   const totalCount = tasks.length
   const completionRate = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0
 
-  const priorityColors = {
-    high: 'text-danger',
-    medium: 'text-warning',
-    low: 'text-text-secondary'
+  const highPriorityPending = tasks.filter(t => t.priority === 'high' && !t.completed).length
+
+  const priorityIndicator = (priority) => {
+    if (priority === 'high') return 'bg-danger'
+    if (priority === 'medium') return 'bg-warning'
+    return 'bg-text-muted'
   }
 
   return (
-    <div className="bg-surface rounded-xl p-4">
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h2 className="text-lg font-semibold text-text-primary flex items-center gap-2">
-            <Clock className="w-5 h-5 text-primary-light" />
-            Daily Tasks
-          </h2>
-          <p className="text-sm text-text-secondary mt-1">
-            {completedCount}/{totalCount} completed ({completionRate}%)
-          </p>
-        </div>
+    <div className="card p-3">
+      <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
+          <Clock className="w-4 h-4 text-primary-light" />
+          <span className="text-xs font-semibold text-text-primary uppercase tracking-wide">Daily Tasks</span>
+          <span className="text-xs stat-number font-bold text-text-muted">{completedCount}/{totalCount}</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          {highPriorityPending > 0 && (
+            <span className="flex items-center gap-0.5 text-xs text-danger">
+              <AlertTriangle className="w-3 h-3" /> {highPriorityPending}
+            </span>
+          )}
           <button
             onClick={() => setShowCompleted(!showCompleted)}
-            className={`text-xs px-2 py-1 rounded ${
-              showCompleted ? 'bg-surface-light text-text-secondary' : 'bg-primary/20 text-primary-light'
+            className={`text-xs px-1.5 py-0.5 rounded transition-colors ${
+              showCompleted ? 'text-text-muted hover:text-text-secondary' : 'bg-primary/20 text-primary-light'
             }`}
           >
-            {showCompleted ? 'Hide Done' : 'Show Done'}
+            {showCompleted ? 'Hide done' : 'Show all'}
           </button>
         </div>
       </div>
 
-      <div className="flex gap-1 mb-3 flex-wrap">
-        <button
-          onClick={() => setFilter('all')}
-          className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
-            filter === 'all' ? 'bg-primary text-white' : 'bg-surface-light text-text-secondary hover:bg-surface-lighter'
-          }`}
-        >
-          All
-        </button>
-        {Object.entries(categoryConfig).map(([key, config]) => (
-          <button
-            key={key}
-            onClick={() => setFilter(key)}
-            className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
-              filter === key ? 'text-white' : 'bg-surface-light text-text-secondary hover:bg-surface-lighter'
-            }`}
-            style={filter === key ? { backgroundColor: config.color } : {}}
-          >
-            {config.label}
-          </button>
-        ))}
-      </div>
-
-      <div className="h-2 bg-surface-light rounded-full overflow-hidden mb-4">
+      {/* Progress bar */}
+      <div className="h-1.5 bg-surface-lighter rounded-full overflow-hidden mb-2">
         <div
-          className="h-full bg-gradient-to-r from-success to-success/70 rounded-full transition-all duration-500"
-          style={{ width: `${completionRate}%` }}
+          className="h-full rounded-full transition-all duration-500"
+          style={{
+            width: `${completionRate}%`,
+            background: completionRate === 100
+              ? 'linear-gradient(90deg, #22c55e, #4ade80)'
+              : completionRate >= 50
+                ? 'linear-gradient(90deg, #6366f1, #8b5cf6)'
+                : 'linear-gradient(90deg, #f59e0b, #fbbf24)'
+          }}
         />
       </div>
 
-      <div className="space-y-1 max-h-96 overflow-y-auto">
-        {filteredTasks.map((task) => {
+      {/* Category filters */}
+      {!compact && (
+        <div className="flex gap-0.5 mb-2 flex-wrap">
+          <button
+            onClick={() => setFilter('all')}
+            className={`px-2 py-0.5 rounded text-xs font-medium transition-colors ${
+              filter === 'all' ? 'bg-primary/20 text-primary-light' : 'text-text-muted hover:text-text-secondary'
+            }`}
+          >
+            All
+          </button>
+          {Object.entries(categoryConfig).map(([key, config]) => (
+            <button
+              key={key}
+              onClick={() => setFilter(key)}
+              className={`px-2 py-0.5 rounded text-xs font-medium transition-colors ${
+                filter === key ? 'text-white' : 'text-text-muted hover:text-text-secondary'
+              }`}
+              style={filter === key ? { backgroundColor: config.color } : {}}
+            >
+              {config.label.split(' ')[0]}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Task list */}
+      <div className="space-y-0.5 max-h-80 overflow-y-auto">
+        {sortedTasks.map((task) => {
           const config = categoryConfig[task.category] || { color: '#6366f1' }
           return (
             <div
               key={task.id}
-              className={`flex items-center gap-3 p-2 rounded-lg group transition-colors ${
-                task.completed ? 'bg-surface-light/30' : 'bg-surface-light/50 hover:bg-surface-light'
+              className={`flex items-center gap-2 py-1.5 px-2 rounded-lg group transition-all ${
+                task.completed ? 'opacity-40' : 'hover:bg-surface-light'
               }`}
             >
               <button onClick={() => toggleTask(task.id)} className="flex-shrink-0">
                 {task.completed ? (
-                  <Check className="w-5 h-5 text-success" />
+                  <Check className="w-4 h-4 text-success" />
                 ) : (
-                  <Circle className="w-5 h-5 text-text-secondary" />
+                  <Circle className="w-4 h-4 text-text-muted" />
                 )}
               </button>
+              <div className={`w-1 h-4 rounded-full flex-shrink-0 ${priorityIndicator(task.priority)}`} />
               <div
-                className="w-2 h-2 rounded-full flex-shrink-0"
+                className="w-1.5 h-1.5 rounded-full flex-shrink-0"
                 style={{ backgroundColor: config.color }}
               />
-              <span className={`flex-1 text-sm ${
-                task.completed ? 'line-through text-text-secondary/60' : 'text-text-primary'
+              <span className={`flex-1 text-xs ${
+                task.completed ? 'line-through text-text-muted' : 'text-text-primary'
               }`}>
                 {task.title}
               </span>
-              <Star className={`w-3 h-3 flex-shrink-0 ${priorityColors[task.priority]}`} />
               {task.recurring && (
-                <span className="text-xs text-text-secondary/50">recurring</span>
+                <Repeat className="w-3 h-3 text-text-muted flex-shrink-0" />
               )}
               <button
                 onClick={() => deleteTask(task.id)}
                 className="opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
               >
-                <Trash2 className="w-4 h-4 text-danger/70" />
+                <Trash2 className="w-3 h-3 text-danger/50" />
               </button>
             </div>
           )
         })}
+
+        {sortedTasks.length === 0 && (
+          <p className="text-xs text-text-muted text-center py-4">No tasks to show</p>
+        )}
       </div>
 
-      <div className="mt-3 flex gap-2">
-        <input
-          type="text"
-          value={newTask}
-          onChange={(e) => setNewTask(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && addTask()}
-          placeholder="Add a task..."
-          className="flex-1 px-3 py-2 bg-surface-light rounded-lg text-sm text-text-primary placeholder:text-text-secondary/50 border border-surface-lighter focus:border-primary focus:outline-none"
-        />
-        <select
-          value={newCategory}
-          onChange={(e) => setNewCategory(e.target.value)}
-          className="px-2 py-2 bg-surface-light rounded-lg text-sm text-text-primary border border-surface-lighter focus:border-primary focus:outline-none"
-        >
-          {Object.entries(categoryConfig).map(([key, config]) => (
-            <option key={key} value={key}>{config.label}</option>
-          ))}
-        </select>
-        <select
-          value={newPriority}
-          onChange={(e) => setNewPriority(e.target.value)}
-          className="px-2 py-2 bg-surface-light rounded-lg text-sm text-text-primary border border-surface-lighter focus:border-primary focus:outline-none"
-        >
-          <option value="high">High</option>
-          <option value="medium">Med</option>
-          <option value="low">Low</option>
-        </select>
-        <button
-          onClick={addTask}
-          className="px-3 py-2 bg-primary hover:bg-primary-dark rounded-lg text-white text-sm transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-        </button>
+      {/* Add task */}
+      <div className="mt-2 pt-2 border-t border-surface-border">
+        {showAdd ? (
+          <div className="space-y-1.5 animate-slide-up">
+            <input
+              type="text"
+              value={newTask}
+              onChange={(e) => setNewTask(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && addTask()}
+              placeholder="What needs to be done?"
+              className="input-sharp w-full text-xs"
+              autoFocus
+            />
+            <div className="flex gap-1.5">
+              <select
+                value={newCategory}
+                onChange={(e) => setNewCategory(e.target.value)}
+                className="input-sharp text-xs flex-1"
+              >
+                {Object.entries(categoryConfig).map(([key, config]) => (
+                  <option key={key} value={key}>{config.label}</option>
+                ))}
+              </select>
+              <select
+                value={newPriority}
+                onChange={(e) => setNewPriority(e.target.value)}
+                className="input-sharp text-xs w-16"
+              >
+                <option value="high">High</option>
+                <option value="medium">Med</option>
+                <option value="low">Low</option>
+              </select>
+              <button
+                onClick={addTask}
+                className="p-2 bg-primary/20 hover:bg-primary/30 rounded-lg text-primary-light transition-colors"
+              >
+                <Plus className="w-3.5 h-3.5" />
+              </button>
+            </div>
+            <button
+              onClick={() => setShowAdd(false)}
+              className="text-xs text-text-muted hover:text-text-secondary w-full text-center py-0.5"
+            >
+              Cancel
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={() => setShowAdd(true)}
+            className="flex items-center gap-1.5 text-xs text-text-muted hover:text-primary-light transition-colors w-full py-1"
+          >
+            <Plus className="w-3.5 h-3.5" /> Add task
+          </button>
+        )}
       </div>
     </div>
   )

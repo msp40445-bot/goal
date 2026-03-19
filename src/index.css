@@ -5,19 +5,31 @@
   --color-primary-dark: #4f46e5;
   --color-primary-light: #818cf8;
   --color-accent: #8b5cf6;
-  --color-surface: #1e1b2e;
-  --color-surface-light: #2a2640;
-  --color-surface-lighter: #363252;
-  --color-bg: #0f0d1a;
+  --color-accent-light: #a78bfa;
+  --color-surface: #13111c;
+  --color-surface-light: #1c1a29;
+  --color-surface-lighter: #2a2740;
+  --color-surface-border: #322f48;
+  --color-bg: #0a0912;
   --color-text-primary: #f1f0f5;
-  --color-text-secondary: #a09bb0;
+  --color-text-secondary: #8b86a0;
+  --color-text-muted: #5c5875;
   --color-success: #22c55e;
+  --color-success-light: #4ade80;
   --color-warning: #f59e0b;
+  --color-warning-light: #fbbf24;
   --color-danger: #ef4444;
+  --color-danger-light: #f87171;
   --color-islam: #10b981;
+  --color-islam-light: #34d399;
   --color-tech: #3b82f6;
+  --color-tech-light: #60a5fa;
   --color-study: #f59e0b;
+  --color-study-light: #fbbf24;
   --color-growth: #ec4899;
+  --color-growth-light: #f472b6;
+  --color-cyan: #06b6d4;
+  --color-orange: #f97316;
 }
 
 * {
@@ -31,6 +43,8 @@ body {
   color: var(--color-text-primary);
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 #root {
@@ -38,19 +52,148 @@ body {
 }
 
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--color-surface);
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
   background: var(--color-surface-lighter);
-  border-radius: 3px;
+  border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-primary);
+}
+
+/* Glass panel effect */
+.glass {
+  background: rgba(19, 17, 28, 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(50, 47, 72, 0.5);
+}
+
+.glass-light {
+  background: rgba(28, 26, 41, 0.6);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(50, 47, 72, 0.3);
+}
+
+/* Glow effects */
+.glow-primary {
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.15), 0 0 40px rgba(99, 102, 241, 0.05);
+}
+
+.glow-success {
+  box-shadow: 0 0 20px rgba(34, 197, 94, 0.15), 0 0 40px rgba(34, 197, 94, 0.05);
+}
+
+.glow-accent {
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.15), 0 0 40px rgba(139, 92, 246, 0.05);
+}
+
+/* Pulse animation for live indicators */
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.85); }
+}
+
+.pulse-dot {
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+/* Slide in animation */
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out;
+}
+
+/* Fade in */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.2s ease-out;
+}
+
+/* Progress ring */
+@keyframes progress-fill {
+  from { stroke-dashoffset: 251.2; }
+}
+
+.progress-ring {
+  animation: progress-fill 1s ease-out;
+}
+
+/* Shimmer for loading */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.shimmer {
+  background: linear-gradient(90deg, transparent 25%, rgba(99, 102, 241, 0.08) 50%, transparent 75%);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+/* Sharp card styling */
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-surface-border);
+  border-radius: 10px;
+  transition: all 0.2s ease;
+}
+
+.card:hover {
+  border-color: rgba(99, 102, 241, 0.3);
+}
+
+.card-inner {
+  background: var(--color-surface-light);
+  border: 1px solid var(--color-surface-border);
+  border-radius: 8px;
+}
+
+/* Input styling */
+.input-sharp {
+  background: var(--color-surface-light);
+  border: 1px solid var(--color-surface-border);
+  border-radius: 8px;
+  color: var(--color-text-primary);
+  font-size: 13px;
+  padding: 8px 12px;
+  transition: all 0.15s ease;
+  outline: none;
+}
+
+.input-sharp:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
+}
+
+.input-sharp::placeholder {
+  color: var(--color-text-muted);
+}
+
+/* Number counter style */
+.stat-number {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+  letter-spacing: -0.02em;
+}
+
+/* Selection */
+::selection {
+  background: rgba(99, 102, 241, 0.3);
+  color: var(--color-text-primary);
 }

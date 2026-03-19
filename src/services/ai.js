@@ -16,19 +16,22 @@ export async function checkOllamaStatus() {
 }
 
 export async function chatWithAI(messages, context = '') {
-  const systemPrompt = `You are GoalForge AI, a personal productivity and life coach assistant. You help the user stay on track with their goals, suggest improvements, check in on progress, and provide actionable advice.
+  const systemPrompt = `You are GoalForge AI — an elite personal productivity coach and life optimizer. You are direct, sharp, and action-oriented. You help the user crush their goals, stay disciplined, and become the best version of themselves.
 
-Current context about the user's goals and tasks:
+Current context:
 ${context}
 
-Guidelines:
-- Be encouraging but honest
-- Give specific, actionable suggestions
-- Help break down large goals into manageable steps
-- Remind about daily habits and routines
-- Be respectful of Islamic values and practices
-- Focus on the 10% daily improvement philosophy
-- Keep responses concise and practical`
+Your approach:
+- Be DIRECT and ACTIONABLE — no fluff, give specific steps
+- Break goals into small executable daily actions
+- Track patterns: identify weak areas and strengths
+- Give honest feedback — praise wins, call out slacking
+- Suggest time-blocked schedules when asked
+- Respect Islamic values and prayer times
+- Follow the 1% daily improvement (kaizen) philosophy
+- Use bullet points and structured formats
+- When breaking down tasks, number each step clearly
+- Always end with ONE key action the user should do RIGHT NOW`
 
   try {
     const response = await fetch(`${OLLAMA_BASE_URL}/api/chat`, {
@@ -61,15 +64,96 @@ export async function getAISuggestion(goals, tasks, type = 'daily') {
   ).join('\n')
 
   const taskSummary = tasks.map(t =>
-    `[${t.completed ? 'DONE' : 'TODO'}] ${t.title} (${t.category})`
+    `[${t.completed ? 'DONE' : 'TODO'}] ${t.title} (${t.category}, ${t.priority})`
   ).join('\n')
 
-  const prompt = type === 'daily'
-    ? `Based on these goals and tasks, suggest 3 things I should focus on today to make the most progress. Be specific and actionable.`
-    : `Review my overall progress and give me a brief motivational check-in with 2-3 suggestions for improvement.`
+  const prompts = {
+    daily: `Analyze my goals and tasks. Create a SHARP prioritized plan for today:
+1. Top 3 tasks to focus on (with time estimates)
+2. Which goal needs the most attention right now
+3. One specific action step for my weakest area
+Be concise and actionable.`,
+    checkin: `Do a progress check-in:
+1. Rate my overall execution (1-10) based on completed vs pending tasks
+2. Which areas am I strong in? Which am I neglecting?
+3. Give 2-3 specific improvements I should make THIS WEEK
+4. A motivational insight based on my progress
+Be honest and direct.`,
+    breakdown: `Look at my goals and break down the MOST IMPORTANT uncompleted goal into:
+1. 5-7 specific daily/weekly actions I can start TODAY
+2. Each action should be completable in 30-60 minutes
+3. Order them by priority and dependency
+4. Include estimated completion dates
+Make each step crystal clear and executable.`,
+    weakness: `Analyze my task completion patterns and goals:
+1. Which categories am I neglecting most?
+2. What patterns do you see in my incomplete tasks?
+3. Give 3 specific strategies to improve my weakest area
+4. Suggest habit changes that would make the biggest impact
+Be brutally honest but constructive.`,
+    weekly: `Generate a weekly review:
+1. Summary of what was accomplished
+2. Completion rate analysis by category
+3. Top 3 wins to celebrate
+4. Top 3 areas needing improvement
+5. Specific plan for next week
+6. Overall momentum assessment (accelerating/maintaining/declining)`
+  }
+
+  const prompt = prompts[type] || prompts.daily
 
   return chatWithAI(
     [{ role: 'user', content: prompt }],
     `Goals:\n${goalSummary}\n\nTasks:\n${taskSummary}`
   )
+}
+
+export async function getTaskBreakdown(goalTitle, goalDescription, existingMilestones) {
+  const milestoneStr = existingMilestones.map(m =>
+    `- ${m.title} (${m.completed ? 'DONE' : 'pending'})`
+  ).join('\n')
+
+  const prompt = `Break down this goal into specific, executable steps:
+
+Goal: ${goalTitle}
+Description: ${goalDescription}
+${milestoneStr ? `\nExisting milestones:\n${milestoneStr}` : ''}
+
+Create 5-8 NEW specific action steps that:
+1. Are each completable in 1-3 hours
+2. Build on each other logically
+3. Don't duplicate existing milestones
+4. Are measurable (you know when it's done)
+
+Format each as a simple title (no numbering, no descriptions). One per line.`
+
+  const response = await chatWithAI([{ role: 'user', content: prompt }], '')
+  return response
+}
+
+export async function analyzeActivityLog(logs, goals) {
+  const logSummary = logs.slice(-20).map(l =>
+    `[${l.timestamp}] ${l.category}: ${l.content}`
+  ).join('\n')
+
+  const goalSummary = goals.map(g =>
+    `${g.title} (${g.category}): ${g.progress}%`
+  ).join('\n')
+
+  const prompt = `Analyze my recent activity log and goals:
+
+Activity Log (recent):
+${logSummary}
+
+Goals:
+${goalSummary}
+
+Provide:
+1. Time allocation analysis — am I spending time on the right things?
+2. Pattern insights — when am I most productive?
+3. Alignment check — does my activity match my goals?
+4. 3 specific optimization suggestions
+Be data-driven and specific.`
+
+  return chatWithAI([{ role: 'user', content: prompt }], '')
 }
